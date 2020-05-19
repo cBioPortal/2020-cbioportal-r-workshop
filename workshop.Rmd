@@ -1,0 +1,190 @@
+---
+title: "cBioPortal API Workshop"
+date: "5/28/2020"
+output: html_document
+knit: (function(input_file, encoding) {
+  out_dir <- 'docs';
+  rmarkdown::render(input_file,
+ encoding=encoding,
+ output_file=file.path(dirname(input_file), out_dir, 'index.html'))})
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This workshop was presented as part of a webinar, see https://www.cbioportal.org/tutorials. It might be useful to look at the slides before following the steps here.
+
+## Installation
+
+For this workshop we use R with the `cBioPortalData` and `AnVIL` packages.
+
+```{r message=FALSE, warning=TRUE}
+library(cBioPortalData)
+library(AnVIL)
+```
+
+## Pulling some stats from the API
+
+Initialize the API with the following commands:
+
+```{r paged.print=TRUE}
+cbio <- cBioPortal()
+cbio
+```
+
+
+This gives an API object in R that allows among other things, access to all the endpoints listed here: https://www.cbioportal.org/api. The object works with tab completion, so if you type `cbio$get` and press the Tab button on your keyboard it will suggest names of various endpoints starting with `get`:
+
+
+![](./tab_completion_endpoints.png)
+
+
+To get an idea of how this works, let's try to answer a few questions using the API object we just created:
+
+1. how many studies are there?
+2. how many cancer types do they span?
+3. how many samples in total?
+4. which study has the largest number of samples?
+
+There are several ways to get these answer. One way would be to try and determine the name of the endpoint that would be likely to return this data. One could e.g. browse the API reference with the list of all the endpoints: https://www.cbioportal.org/api/swagger-ui.html. In the `Studies` collection of endpoints it shows there is an endpoint to get all studies:
+
+![](./cbioportal_studies_endpoints.png)
+
+You could click on "Try it Out", press the "Execute" button and notice that the response does indeed have all studies.
+
+An alternative approach is to take advantage of the fact that the homepage (www.cbioportal.org) lists how many studies there are (note that this number may differ if you are doing this workshop at a later date):
+
+![](./cbioportal_study_count.png)
+
+To get that information programmatically, let's try to figure out what endpoint is used by the homepage. To do so, go to www.cbioportal.org and open the "Developer Tools" in your browser (View > Developer Tools). Click on the "Network" tab and filter the requests by `api`. Refresh the homepage again. If you look at the `/api/studies` endpoint you should see something like this:
+
+![](./api_homepage_endpoints.png)
+
+There are two other endpoints being used but if you look at the response of each you'll notice that only the `/api/studies` endpoint lists the number of studies. There are `284` elements in the response at time of writing, so we know now that the number of elements in this response corresponds to the number of studies.
+
+To do this in R using `cBioPortalData` API Object one could do:
+
+```{r}
+resp <- cbio$getAllStudiesUsingGET()
+resp
+```
+This gives an object with info about the HTTP request's response. To parse the response into a more convenient object for analysis use the `httr:content` function:
+
+```{r}
+parsedResponse <- httr::content(resp)
+cat("Number of elements in the response:", length(parsedResponse))
+```
+
+Since we know in this case that each element represents a study, we can answer question 1:
+
+```{r}
+cat("Answer 1: There are", length(parsedResponse), "studies in cBioPortal")
+```
+
+As you can see, this took quite a few steps. The parsing of responses semi-manually becomes tedious, which is why `cBioPortalData` has all kinds of convenience functions that do this for you. E.g. instead of having to figure out the endpoint for studies one can simply use the function `getStudies`:
+
+```{r}
+studies <- getStudies(cbio)
+studies
+```
+
+The `getStudies` function returns a special kind of table (a [tibble](https://tibble.tidyverse.org/)). It allows for easy transformations to help answer the other questions more easily.
+
+You can get the dimensions of the table with `dim` (rows x columns):
+
+```{r}
+dim(studies)
+```
+
+So we can answer question 1 now with the studies tibble instead:
+
+```{r}
+cat("Answer 1: There are", nrow(studies), "studies in cBioPortal")
+```
+
+Let's see what all the columns are in this table:
+
+```{r}
+colnames(studies)
+```
+
+There is a column called `cancerTypeId`, which is exactly what we need for question 2:
+
+```{r}
+cat("Answer 2: The studies spans", length(unique(studies$cancerTypeId)), "cancer types")
+```
+
+There is also a column caled `allSampleCount` with the number of samples for each study. That will help us answer question 3:
+
+```{r}
+cat("Answer 3: There are ", sum(studies$allSampleCount), "samples in cBioPortal")
+```
+
+And question 4:
+
+```{r}
+cat("Answer 4: There study with the most samples is", studies[which.max(studies$allSampleCount), "name"][[1]])
+```
+
+So how could you have known in the beginning that this function `getStudies` existed and avoid the manual parsing of API responses? There is a function in R to list all functions in a package:
+
+```{r}
+ls.str("package:cBioPortalData")
+```
+
+A more user friendly page with all functions in the `cBioPortalData` package website can be found at: https://waldronlab.io/cBioPortalData/reference/index.html. In general it is good to first check if there is a function that pulls the data you need in `cBioPortalData`. If it's not there one can resort to parsing the API responses directly as shown before.
+
+## Visualizing data from the API
+
+For a simple example of visualizing some data from the API we will try to recreate the barchart from the homepage in R:
+
+![](./cancertypes_barchart.png)
+
+To make things easier we will use the total number of samples instead of cases. The latter refers to number of patients.
+
+We still have the studies tibble object from before, which we can reuse. A tibble is an object which is part of the R [tidyverse](https://www.tidyverse.org/). This is an opinionated collection of R packages that are specifically designed for data science. It therefore makes sense to use the [dplyr](https://dplyr.tidyverse.org/) library, which is part of the same universe to manipulate it. They have some nice cheatsheet available that shows common data manipulations: https://github.com/rstudio/cheatsheets/blob/master/data-transformation.pdf. Let's first get the top 20 counts per cancer type:
+
+```{r}
+cancerTypeCounts <-                                # assign result to cancerTypeCounts variable
+  studies %>%                                      # %>% is the pipe operator, so pipe studies
+  group_by(cancerTypeId) %>%                       # and group by cancer type
+  summarise(totalSamples=sum(allSampleCount)) %>%  # sum allSampleCount, add as column totalSamples
+  arrange(desc(totalSamples)) %>%                  # sort by totalSamples
+  top_n(20)                                        # take top 20
+cancerTypeCounts                                   # print newly created variable
+```
+
+This might be a rather complex set of functions if you are not used to `dplyr`, but don't worry about that too much for now. In short we manipulate the data by applying a sequence of functions. First we group by the cancerTypeId, then we sum the allSampleCount variable and assign it to a new column `totalSamples`, subsequently we sort by `totalSamples` in descending order and take the top 20. In the output we notice a cancertype called "mixed", which is not in the plot in the homepage. The mixed cancer type indicates that the study contains samples with mixed cancer types. We'll go ahead and exclude those studies for now:
+
+```{r}
+cancerTypeCounts <-
+  studies %>%
+  filter(cancerTypeId != "mixed") %>%              # add filter for mixed type
+  group_by(cancerTypeId) %>%
+  summarise(totalSamples=sum(allSampleCount)) %>%
+  arrange(desc(totalSamples)) %>%
+  top_n(20)
+cancerTypeCounts
+```
+
+Now let's try to plot it:
+
+```{r, fig.height=4, fig.width=4, echo=FALSE}
+# sort in ascending order for barchart
+cancerTypeCounts <- cancerTypeCounts %>% arrange(cancerTypeCounts$totalSamples)
+# add margin to fit axis labels
+par(mar=c(4,6,1,1))
+barplot(cancerTypeCounts$totalSamples,
+        names=cancerTypeCounts$cancerTypeId,
+        main= 'Number of samples by Top 20 Primary Sites',
+        horiz = TRUE,
+        las=1)
+```
+
+As you might have noticed the counts differ from the homepage. There are fewer samples in our plot. This is because the homepage also includes the counts for the mixed cancer types. To get the proper label names instead of the short cancer type name, one would have to get the full names from `/api/cancer-types/` or use the `DETAILED` projection on the `/api/studies/` endpoint.
+
+Aside from making visualizations yourself using the`barplot` and `plot` functions (known as r base graphics) or using the popular [ggplot2](https://ggplot2.tidyverse.org/). There are many visualization packages out there to make variations of the plots that one can find on the cBioPortal website, e.g. [maftools](https://bioconductor.org/packages/release/bioc/html/maftools.html), [GenVisR](https://www.bioconductor.org/packages/release/bioc/vignettes/GenVisR/inst/doc/Intro.html), [ComplexHeatMap](https://jokergoo.github.io/ComplexHeatmap-reference/book/a-single-heatmap.html). The tricky part is usually transforming the data to work for the particular tool of interest, but once you've done it you can reuse the code and apply it to any new study that shows up in cBioPortal. This is one of the powerful features of using an API where one can expect the data to always be in the same format.
+
