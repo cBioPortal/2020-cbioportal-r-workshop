@@ -125,7 +125,7 @@ You could click on "Try it Out", press the "Execute" button and notice that the 
 
 ##### 3. Using Browser Developer Tools
 
-Lastly, an alternative approach ti find an endpoint if interest is to take advantage of the fact that the homepage ([www.cbioportal.org](https://www.cbioportal.org)) lists how many studies there are:
+Lastly, another approach for finding an endpoint is to browse the [cbioportal.org](https://www.cbioportal.org) website. You can in this case take advantage of the fact that the homepage ([www.cbioportal.org](https://www.cbioportal.org)) lists how many studies there are:
 
 ![](./cbioportal_study_count.png){ width=50% }
 
