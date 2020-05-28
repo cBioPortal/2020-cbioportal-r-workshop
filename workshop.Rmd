@@ -105,7 +105,7 @@ To get an idea of how the client works, let's try to answer a few questions usin
 #### Find the relevant endpoint
 There are several ways to get these answer. One way would be to try and determine the name of the endpoint that would be likely to return this data.
 
-##### Using cBioPortalData
+##### 1. Using cBioPortalData
 
 You can list the endpoints by using the Tab completion option shown before or by searching through the endpoints using the `cBioPortalData` function `searchOps`:
 
@@ -115,15 +115,15 @@ searchOps(cbio, "studies")
 
 The `getAllStudiesUsingGet` endpoint seems quite likely to give the response we are looking for to determine the total number of studies in cBioportal.
 
-##### Using API Documentation
+##### 2. Using API Documentation
 
 Another way to find the relevant endpoint could be to e.g. browse the API reference with the list of all the endpoints: https://www.cbioportal.org/api/swagger-ui.html. In the `Studies` collection of endpoints it shows there is an endpoint to get all studies:
 
-![](./cbioportal_studies_endpoints.png){ width=30% }
+![](./cbioportal_all_studies_endpoint.png){ width=30% }
 
 You could click on "Try it Out", press the "Execute" button and notice that the response does indeed have all studies.
 
-##### Using Browser Developer Tools
+##### 3. Using Browser Developer Tools
 
 Lastly, an alternative approach ti find an endpoint if interest is to take advantage of the fact that the homepage ([www.cbioportal.org](https://www.cbioportal.org)) lists how many studies there are:
 
