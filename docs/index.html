@@ -388,6 +388,13 @@ library(AnVIL)</code></pre>
 <h4>Using R</h4>
 <p>After the workshop you might want to install <a href="https://rstudio.com/">RStudio</a> and <a href="https://waldronlab.io/cBioPortalData/">cBioPortalData</a> locally on your own machine.</p>
 <p>If you already have R&gt;=4.0.0 and RStudio installed and are familiar with installing packages you can install cBioPortalData with:</p>
+<pre class="r"><code>if (!requireNamespace(&quot;BiocManager&quot;, quietly = TRUE))
+    install.packages(&quot;BiocManager&quot;)
+
+if (!requireNamespace(&quot;cBioPortalData&quot;, quietly = TRUE))
+    BiocManager::install(&quot;cBioPortalData&quot;)
+
+library(cBioPortalData)</code></pre>
 </div>
 <div id="using-bioconda" class="section level4">
 <h4>Using Bioconda</h4>
@@ -485,7 +492,7 @@ cbio</code></pre>
 <pre class="r"><code>resp &lt;- cbio$getAllStudiesUsingGET()
 resp</code></pre>
 <pre><code>## Response [http://www.cbioportal.org/api/studies]
-##   Date: 2020-05-28 01:20
+##   Date: 2020-05-28 01:25
 ##   Status: 200
 ##   Content-Type: application/json;charset=UTF-8
 ##   Size: 148 kB</code></pre>

@@ -42,7 +42,7 @@ After the workshop you might want to install [RStudio](https://rstudio.com/) and
 
 If you already have R>=4.0.0 and RStudio installed and are familiar with installing packages you can install cBioPortalData with:
 
-```{r echo=FALSE, eval=FALSE}
+```{r eval=FALSE}
 if (!requireNamespace("BiocManager", quietly = TRUE))
     install.packages("BiocManager")
 
