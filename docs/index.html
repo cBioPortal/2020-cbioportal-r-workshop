@@ -492,7 +492,7 @@ cbio</code></pre>
 <pre class="r"><code>resp &lt;- cbio$getAllStudiesUsingGET()
 resp</code></pre>
 <pre><code>## Response [http://www.cbioportal.org/api/studies]
-##   Date: 2020-05-28 01:38
+##   Date: 2020-05-28 03:14
 ##   Status: 200
 ##   Content-Type: application/json;charset=UTF-8
 ##   Size: 148 kB</code></pre>
@@ -577,7 +577,7 @@ browseVignettes(package = &quot;cBioPortalData&quot;)</code></pre>
 <h4>Transform data using tidyverse</h4>
 <p>We still have the studies tibble object from before, which we can reuse. A tibble is an object which is part of the R <a href="https://www.tidyverse.org/">tidyverse</a>. This is an opinionated collection of R packages that are specifically designed for data science. It therefore makes sense to use the <a href="https://dplyr.tidyverse.org/">dplyr</a> library, which is part of the same universe to manipulate it. They have a nice cheatsheet available that shows common data transformations: <a href="https://github.com/rstudio/cheatsheets/blob/master/data-transformation.pdf" class="uri">https://github.com/rstudio/cheatsheets/blob/master/data-transformation.pdf</a>.</p>
 <p>Let’s first get the top 20 counts per cancer type:</p>
-<pre class="r"><code>cancerTypeCounts &lt;-                                # assign result to cancerTypeCounts
+<pre class="r"><code>cancerTypeCounts &lt;-                                # assign results
   studies %&gt;%                                      # %&gt;% is the pipe operator
   group_by(cancerTypeId) %&gt;%                       # and group by cancer type
   summarise(totalSamples=sum(allSampleCount)) %&gt;%  # sum allSampleCount, add column

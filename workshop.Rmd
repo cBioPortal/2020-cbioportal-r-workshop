@@ -242,7 +242,7 @@ We still have the studies tibble object from before, which we can reuse. A tibbl
 Let's first get the top 20 counts per cancer type:
 
 ```{r message=FALSE}
-cancerTypeCounts <-                                # assign result to cancerTypeCounts
+cancerTypeCounts <-                                # assign results
   studies %>%                                      # %>% is the pipe operator
   group_by(cancerTypeId) %>%                       # and group by cancer type
   summarise(totalSamples=sum(allSampleCount)) %>%  # sum allSampleCount, add column
